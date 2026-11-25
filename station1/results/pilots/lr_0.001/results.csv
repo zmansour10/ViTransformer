@@ -1,0 +1,11 @@
+experiment,architecture,input_config,weights,rank,alpha,optimizer,learning_rate,patience,weight_decay,batch_size,epochs,seed,training_images,workers,device,torch_version,preprocessing,augmentation,lightning_version,trainable_params,total_params,training_seconds,best_epoch,val_accuracy,val_macro_f1,val_loss
+cnn,resnet18,"{'size': [224, 224], 'interpolation': 'bilinear', 'mean': [0.485, 0.456, 0.406], 'std': [0.229, 0.224, 0.225]}",IMAGENET1K_V1,0,0,AdamW,0.001,4,0.01,32,2,42,640,0,mps,2.15.0,"Compose(
+    Resize(size=(224, 224), interpolation=bilinear, max_size=None, antialias=True)
+    ToTensor()
+    Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+)","horizontal and vertical flips, p=0.5 each",2.6.6,5130,11181642,30.97377899987623,2,0.8299999833106995,0.8226187229156494,1.0861504077911377
+vit_linear,vit_small_patch16_224.augreg_in21k_ft_in1k,"{'size': [224, 224], 'interpolation': 'bicubic', 'mean': [0.5, 0.5, 0.5], 'std': [0.5, 0.5, 0.5]}",vit_small_patch16_224.augreg_in21k_ft_in1k,0,0,AdamW,0.001,4,0.01,32,2,42,640,0,mps,2.15.0,"Compose(
+    Resize(size=(224, 224), interpolation=bicubic, max_size=None, antialias=True)
+    ToTensor()
+    Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+)","horizontal and vertical flips, p=0.5 each",2.6.6,3850,21669514,56.63009433285333,2,0.8274074196815491,0.8174173831939697,0.5814164876937866

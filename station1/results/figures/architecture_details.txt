@@ -1,0 +1,59 @@
+cnn
+Backbone: resnet18
+Pretrained weights: IMAGENET1K_V1
+Classes (10): AnnualCrop, Forest, HerbaceousVegetation, Highway, Industrial, Pasture, PermanentCrop, Residential, River, SeaLake
+Trainable parameters: 5,130 / 11,181,642 (0.046%)
+LoRA rank / alpha: 0 / 0
+Preprocessing: Compose(
+    Resize(size=(224, 224), interpolation=bilinear, max_size=None, antialias=True)
+    ToTensor()
+    Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+)
+
+vit_linear
+Backbone: vit_small_patch16_224.augreg_in21k_ft_in1k
+Pretrained weights: vit_small_patch16_224.augreg_in21k_ft_in1k
+Classes (10): AnnualCrop, Forest, HerbaceousVegetation, Highway, Industrial, Pasture, PermanentCrop, Residential, River, SeaLake
+Trainable parameters: 3,850 / 21,669,514 (0.018%)
+LoRA rank / alpha: 0 / 0
+Preprocessing: Compose(
+    Resize(size=(224, 224), interpolation=bicubic, max_size=None, antialias=True)
+    ToTensor()
+    Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+)
+
+vit_lora_r8
+Backbone: vit_small_patch16_224.augreg_in21k_ft_in1k
+Pretrained weights: vit_small_patch16_224.augreg_in21k_ft_in1k
+Classes (10): AnnualCrop, Forest, HerbaceousVegetation, Highway, Industrial, Pasture, PermanentCrop, Residential, River, SeaLake
+Trainable parameters: 151,306 / 21,816,970 (0.694%)
+LoRA rank / alpha: 8 / 8
+Preprocessing: Compose(
+    Resize(size=(224, 224), interpolation=bicubic, max_size=None, antialias=True)
+    ToTensor()
+    Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+)
+
+vit_lora_r4
+Backbone: vit_small_patch16_224.augreg_in21k_ft_in1k
+Pretrained weights: vit_small_patch16_224.augreg_in21k_ft_in1k
+Classes (10): AnnualCrop, Forest, HerbaceousVegetation, Highway, Industrial, Pasture, PermanentCrop, Residential, River, SeaLake
+Trainable parameters: 77,578 / 21,743,242 (0.357%)
+LoRA rank / alpha: 4 / 4
+Preprocessing: Compose(
+    Resize(size=(224, 224), interpolation=bicubic, max_size=None, antialias=True)
+    ToTensor()
+    Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+)
+
+vit_lora_r16
+Backbone: vit_small_patch16_224.augreg_in21k_ft_in1k
+Pretrained weights: vit_small_patch16_224.augreg_in21k_ft_in1k
+Classes (10): AnnualCrop, Forest, HerbaceousVegetation, Highway, Industrial, Pasture, PermanentCrop, Residential, River, SeaLake
+Trainable parameters: 298,762 / 21,964,426 (1.360%)
+LoRA rank / alpha: 16 / 16
+Preprocessing: Compose(
+    Resize(size=(224, 224), interpolation=bicubic, max_size=None, antialias=True)
+    ToTensor()
+    Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+)

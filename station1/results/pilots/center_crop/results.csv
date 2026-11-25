@@ -1,0 +1,14 @@
+experiment,architecture,weights,rank,alpha,optimizer,learning_rate,weight_decay,batch_size,epochs,seed,workers,device,torch_version,preprocessing,augmentation,lightning_version,trainable_params,total_params,training_seconds,best_epoch,val_accuracy,val_macro_f1,val_loss
+cnn,resnet18,IMAGENET1K_V1,0,0,AdamW,0.001,0.01,32,3,42,2,mps,2.15.0,"ImageClassification(
+    crop_size=[224]
+    resize_size=[256]
+    mean=[0.485, 0.456, 0.406]
+    std=[0.229, 0.224, 0.225]
+    interpolation=InterpolationMode.BILINEAR
+)","horizontal and vertical flips, p=0.5 each",2.6.6,5130,11181642,350.28383904206567,3,0.9481481313705444,0.9464508891105652,0.1675355285406112
+vit_linear,vit_tiny_patch16_224.augreg_in21k_ft_in1k,vit_tiny_patch16_224.augreg_in21k_ft_in1k,0,0,AdamW,0.001,0.01,32,3,42,2,mps,2.15.0,"Compose(
+    Resize(size=248, interpolation=bicubic, max_size=None, antialias=True)
+    CenterCrop(size=(224, 224))
+    MaybeToTensor()
+    Normalize(mean=tensor([0.5000, 0.5000, 0.5000]), std=tensor([0.5000, 0.5000, 0.5000]))
+)","horizontal and vertical flips, p=0.5 each",2.6.6,1930,5526346,233.64703941601329,2,0.9411110877990723,0.9384839534759521,0.17764805257320404

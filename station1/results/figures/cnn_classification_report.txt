@@ -1,0 +1,16 @@
+Held-out test · ResNet18
+Accuracy: 0.9426 (2700 images)
+
+                      precision  recall     f1  support
+AnnualCrop               0.9461  0.9367 0.9414      300
+Forest                   0.9489  0.9900 0.9690      300
+HerbaceousVegetation     0.9329  0.9267 0.9298      300
+Highway                  0.9156  0.8680 0.8912      250
+Industrial               0.9430  0.9920 0.9669      250
+Pasture                  0.9235  0.9050 0.9141      200
+PermanentCrop            0.8859  0.9320 0.9084      250
+Residential              0.9864  0.9700 0.9782      300
+River                    0.9336  0.9000 0.9165      250
+SeaLake                  0.9899  0.9800 0.9849      300
+macro avg                0.9406  0.9400 0.9400     2700
+weighted avg             0.9428  0.9426 0.9424     2700

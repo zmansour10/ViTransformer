@@ -13,5 +13,5 @@
 *.h5
 
 /station1/paper/
-/station1/
+#/station1/
 /shared/latex/
