@@ -1,6 +1,7 @@
-"""Plot a station's saved metrics, histories and predictions without model inference."""
+"""Plot saved station results. Add --detailed for per-model figures and reports."""
 
 import argparse
+import json
 from pathlib import Path
 
 import h5py
@@ -120,15 +121,112 @@ def error_examples(predictions, model, data):
     return fig
 
 
-def make_figures(directory, data):
+def run_curves(history, name, best_epoch):
+    fig, axes = plt.subplots(1, 2, figsize=(8, 3.3), layout="constrained")
+    fig.suptitle(model_name(name))
+    
+    for ax, metric, ylabel, scale in zip(axes, ("loss", "accuracy"),
+                                         ("Cross-entropy", "Accuracy (%)"), (1, 100)):
+        ax.plot(history.epoch, history[f"train_{metric}"] * scale, color=COLORS[0], label="Train")
+        ax.plot(history.epoch, history[f"val_{metric}"] * scale, color=COLORS[1], label="Validation")
+        ax.axvline(best_epoch, color="0.45", linestyle=":", label="Selected by val. macro-F1")
+        ax.set(xlabel="Epoch", ylabel=ylabel)
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.grid(axis="y")
+    
+    
+    fig.legend(handles=axes[0].get_lines(), loc="outside lower center", ncol=3)
+    
+    return fig
+
+
+def confusion_plot(matrix, classes, name):
+    fig, ax = plt.subplots(figsize=(7.2, 6.1), layout="constrained")
+    image = ax.imshow(matrix, cmap="Blues", vmin=0)
+    fig.colorbar(image, ax=ax, label="Test images", shrink=0.82)
+    
+    ax.set(xticks=range(len(classes)), yticks=range(len(classes)), yticklabels=classes,
+           xlabel="Predicted class", ylabel="True class", title=f"Held-out test · {model_name(name)}")
+    
+    ax.set_xticklabels(classes, rotation=45, ha="right", rotation_mode="anchor")
+    threshold = matrix.max() / 2
+    
+    for (i, j), count in np.ndenumerate(matrix):
+    
+        if count:
+            ax.text(j, i, str(count), ha="center", va="center",
+                    color="white" if count > threshold else "black", fontsize=8)
+    return fig
+
+
+def classification_report(run, classes):
+    
+    metrics = pd.DataFrame.from_dict(json.loads(run.test_per_class), orient="index").loc[classes]
+    
+    scores = metrics[["precision", "recall", "f1"]]
+    support = metrics.support.sum()
+    report = scores.assign(support=metrics.support)
+    report.loc["macro avg"] = [*scores.mean(), support]
+    report.loc["weighted avg"] = [*np.average(scores, axis=0, weights=metrics.support), support]
+    report["support"] = report.support.astype(int)
+    
+    return (f"Held-out test · {model_name(run.name)}\n"
+            f"Accuracy: {run.test_accuracy:.4f} ({support} images)\n\n"
+            + report.to_string(float_format="{:.4f}".format) + "\n")
+
+
+def detailed_exports(results, predictions, directory, data, folder):
+    columns = ["architecture", "rank", "alpha", "optimizer", "learning_rate", "batch_size",
+               "seed", "training_images", "epochs", "best_epoch", "total_params", "trainable_params",
+               "training_seconds", "val_accuracy", "val_macro_f1", "test_accuracy", "test_macro_f1"]
+    
+    summary = results[columns].rename(columns={"epochs": "max_epochs"}).copy()
+    
+    summary["trainable_pct"] = 100 * summary.trainable_params / summary.total_params
+    architectures = []
+    test = predictions.loc[predictions.split == "test"]
+    
+    for name, run in results.iterrows():
+        classes = json.loads(run.test_class_order)
+        matrix = np.asarray(json.loads(run.test_confusion_matrix))
+        rows = test.loc[test.experiment == name]
+        counts = pd.crosstab(rows.true_class, rows.predicted_class).reindex(
+            index=classes, columns=classes, fill_value=0)
+        if rows.empty or rows.filename.duplicated().any() or matrix.sum() != len(rows) or not np.array_equal(matrix, counts):
+            raise ValueError(f"{name}: test predictions and saved confusion matrix disagree")
+
+        history = pd.read_csv(directory / name / "history.csv")
+        summary.loc[name, "epochs_completed"] = len(history)
+        summary.loc[name, "test_images"] = len(rows)
+        architectures.append(
+            f"{name}\nBackbone: {run.architecture}\nPretrained weights: {run.weights}\n"
+            f"Classes ({len(classes)}): {', '.join(classes)}\n"
+            f"Trainable parameters: {run.trainable_params:,} / {run.total_params:,} "
+            f"({summary.at[name, 'trainable_pct']:.3f}%)\n"
+            f"LoRA rank / alpha: {run['rank']} / {run.alpha}\nPreprocessing: {run.preprocessing}\n"
+        )
+    
+        for suffix, fig in (("curves", run_curves(history, name, int(run.best_epoch))),
+                            ("confusion_matrix", confusion_plot(matrix, classes, name)),
+                            ("misclassified", error_examples(rows, name, data))):
+            fig.savefig(folder / f"{name}_{suffix}.png", dpi=180, bbox_inches="tight")
+            plt.close(fig)
+        (folder / f"{name}_classification_report.txt").write_text(
+            classification_report(run, classes), encoding="utf-8")
+
+    summary.astype({"epochs_completed": int, "test_images": int}).to_csv(folder / "experiment_summary.csv")
+    (folder / "architecture_details.txt").write_text("\n".join(architectures), encoding="utf-8")
+
+
+def make_figures(directory, data, *, detailed=False, output=None):
     results = pd.read_csv(directory / "results.csv").set_index("experiment", verify_integrity=True)
     predictions = pd.read_csv(directory / "predictions.csv")
     
     if results[["test_accuracy", "test_macro_f1"]].isna().any().any():
         raise ValueError("Complete held-out evaluation for each run before plotting.")
     
-    folder = directory / "figures"
-    folder.mkdir(exist_ok=True)
+    folder = directory / "figures" if output is None else output
+    folder.mkdir(parents=True, exist_ok=True)
 
     def save(fig, name):
         fig.savefig(folder / (name + ".pdf"), dpi=300, bbox_inches="tight")
@@ -149,6 +247,8 @@ def make_figures(directory, data):
         raise ValueError(f"Missing test predictions for {model}")
     
     save(error_examples(predictions, model, data), "error_examples")
+    if detailed:
+        detailed_exports(results, predictions, directory, data, folder)
 
 
 if __name__ == "__main__":
@@ -156,9 +256,12 @@ if __name__ == "__main__":
     
     parser.add_argument("--results", type=Path, default=ROOT / "station1" / "results")
     parser.add_argument("--data", type=Path, default=ROOT / "data" / "eurosat.h5")
+    parser.add_argument("--detailed", action="store_true",
+                        help="Also export per-model curves, confusion matrices, error examples and reports")
+    parser.add_argument("--output", type=Path, help="Output folder (default: <results>/figures)")
     args = parser.parse_args()
     plt.rcParams.update({"font.size": 9, "axes.spines.top": False, "axes.spines.right": False,
                          "axes.axisbelow": True, "grid.alpha": 0.25, "legend.frameon": False,
                          "pdf.fonttype": 42})
     
-    make_figures(args.results, args.data)
+    make_figures(args.results, args.data, detailed=args.detailed, output=args.output)
