@@ -3,14 +3,15 @@
 
 
 
-#/data/metadata
-
-/results/*
+#/data/
 
 
 /Dataset/EuroSAT_RGB/
 /docs
-
 /data
 
 *.h5
+
+/station1/paper/
+/station1/
+/shared/latex/
