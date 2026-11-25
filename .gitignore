@@ -8,7 +8,7 @@
 
 /Dataset/EuroSAT_RGB/
 /docs
-/data
+#/data
 
 *.h5
 
